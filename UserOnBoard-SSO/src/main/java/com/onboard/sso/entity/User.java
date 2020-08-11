@@ -12,8 +12,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 /**
  * @author Anish Singh(anish2u2@gmail.com)
@@ -26,7 +30,8 @@ public class User {
 
 	@Id
 	@Column(name="USER_ID")
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@SequenceGenerator(initialValue = 1,allocationSize = 1,sequenceName = "USER_INCREAMENTOR", name = "USER_INCREAMENTOR")
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "USER_INCREAMENTOR")
 	private Long id;
 		
 	@Column(name="USER_NAME")
@@ -37,10 +42,11 @@ public class User {
 	
 	@OneToOne
 	@JoinColumn(name = "USER_DETAIL_ID")
+	@Cascade(CascadeType.ALL)
 	private UserDetails userDetails;
 	
 	@Transient
-	private List<Role> roles;
+	private transient List<Role> roles;
 	
 	@Column(name = "ACTIVE")
 	private Boolean active;

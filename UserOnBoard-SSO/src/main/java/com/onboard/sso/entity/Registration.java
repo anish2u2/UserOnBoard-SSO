@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.onboard.sso.entity;
 
 import java.util.Date;
@@ -10,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 /**
@@ -23,7 +21,8 @@ import javax.persistence.Table;
 public class Registration {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@SequenceGenerator(initialValue = 1,allocationSize = 1,sequenceName = "REGISTRATION_INCREAMENTOR", name = "REGISTRATION_INCREAMENTOR")
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REGISTRATION_INCREAMENTOR")
 	@Column(name = "REGISTRATION_ID")
 	private Long id;
 	

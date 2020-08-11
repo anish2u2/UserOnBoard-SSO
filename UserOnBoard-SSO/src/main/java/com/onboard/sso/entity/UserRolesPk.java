@@ -21,7 +21,7 @@ public class UserRolesPk implements Serializable{
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 354351L;
+	private static final long serialVersionUID = 154543L;
 
 	@Column(name  ="USER_ID")
 	private Long id;

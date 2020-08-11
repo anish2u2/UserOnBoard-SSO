@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 /**
@@ -18,9 +19,14 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "ROLE")
 public class Role {
-
+	
+	public static final String ADMIN_ROLE="ADMIN";
+	
+	public static final String USER_ROLE="USER";
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@SequenceGenerator(initialValue = 1,allocationSize = 1,sequenceName = "ROLE_INCREAMENTOR", name = "ROLE_INCREAMENTOR")
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ROLE_INCREAMENTOR")
 	@Column(name = "ROLE_ID")
 	private Long id;
 	
