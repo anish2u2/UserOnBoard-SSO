@@ -3,6 +3,8 @@
  */
 package com.onboard.sso.controllers;
 
+import java.util.Calendar;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,17 +13,21 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.onboard.sso.entity.RegistrationSessionToken;
 import com.onboard.sso.entity.User;
 import com.onboard.sso.model.AuthFailureResponse;
 import com.onboard.sso.model.AuthResponse;
 import com.onboard.sso.model.AuthSuccessResponse;
 import com.onboard.sso.model.LoginModel;
+import com.onboard.sso.repos.RegistrationSessionTokenRepo;
+import com.onboard.sso.service.SessionRegistrationService;
 import com.onboard.sso.service.UserDetailsServices;
 import com.onboard.sso.util.JwtTokenUtil;
 
@@ -38,6 +44,12 @@ public class AuthenticationController {
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private RegistrationSessionTokenRepo repo;
+	
+	@Autowired
+	private SessionRegistrationService service;
 	
 	@Autowired
 	private JwtTokenUtil tokenUtil;
@@ -90,4 +102,23 @@ public class AuthenticationController {
 	}
 	
 	
+	@RequestMapping(path = "authRegSessiontoken.json", method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	public AuthResponse validateSessionToken(HttpServletRequest request) {
+		String tokenStr=request.getHeader("tempToken")==null?request.getParameter("tempToken"):request.getHeader("tempToken");
+		System.out.println("Found token:"+tokenStr);
+		if(tokenStr==null) {
+			return new AuthFailureResponse(401,"User not found.");
+		}
+		RegistrationSessionToken token=repo.findByEmail(tokenStr);
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DAY_OF_MONTH, -10);
+		if(token!=null && !cal.getTime().after(token.getLastUpdatedDate())) {
+			return new AuthSuccessResponse(200, tokenStr);
+		}else {
+			service.deleteToken(token);
+		}
+		
+		return new AuthFailureResponse(400,"Token not found.");
+	}
 }

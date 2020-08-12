@@ -4,6 +4,7 @@
 package com.onboard.sso.filters;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -53,19 +54,27 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		if (!isUrlWhiteListed(request)) {
-			try{if (!validateToken(request)) {
-				response.sendError(401, "User not authorize.");
-				return;
-			}
-			String userName = tokenUtil.getUsernameFromToken(request.getHeader(TOKEN_HEADER));
-
-			UserDetails userDetails = userdetailsService.loadUserByUsername(userName);
-			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userName,
-					userDetails.getPassword(), userDetails.getAuthorities());
+		String registrationToken = getRegistrationToken(request);
+		System.out.println(StringUtils.isEmpty(registrationToken)+" "+registrationToken+" "+isRegistrationRequest(request));
+		if (!StringUtils.isEmpty(registrationToken) && isRegistrationRequest(request)) {
+			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("TEMP_USER",
+					"TEMP_PASSWORD", new ArrayList<>());
 			SecurityContext context = SecurityContextHolder.getContext();
 			context.setAuthentication(authentication);
-			}catch (ExpiredJwtException e) {
+		} else if (!isUrlWhiteListed(request)) {
+			try {
+				if (!validateToken(request)) {
+					response.sendError(401, "User not authorize.");
+					return;
+				}
+				String userName = tokenUtil.getUsernameFromToken(request.getHeader(TOKEN_HEADER));
+
+				UserDetails userDetails = userdetailsService.loadUserByUsername(userName);
+				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userName,
+						userDetails.getPassword(), userDetails.getAuthorities());
+				SecurityContext context = SecurityContextHolder.getContext();
+				context.setAuthentication(authentication);
+			} catch (ExpiredJwtException e) {
 				response.sendError(401, "Token Expired");
 				return;
 			}
@@ -108,6 +117,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 			}
 		}
 		return false;
+	}
+	
+	public String getRegistrationToken(HttpServletRequest request) {
+		return request.getHeader("tempToken")==null?request.getParameter("tempToken"):request.getHeader("tempToken");
+	}
+
+	public boolean isRegistrationRequest(HttpServletRequest request) {
+		return "/authRegSessiontoken.json".equals(request.getRequestURI());
 	}
 
 }

@@ -8,7 +8,24 @@ package com.onboard.sso.model;
  *
  * 11-Aug-2020
  */
-public class AuthFailureResponse extends AuthResponse{
+public class AuthFailureResponse implements AuthResponse{
+
+	
+	private int statusCode;
+
+	/**
+	 * @return the statusCode
+	 */
+	public int getStatusCode() {
+		return statusCode;
+	}
+
+	/**
+	 * @param statusCode the statusCode to set
+	 */
+	public void setStatusCode(int statusCode) {
+		this.statusCode = statusCode;
+	}
 
 	
 	private String message;

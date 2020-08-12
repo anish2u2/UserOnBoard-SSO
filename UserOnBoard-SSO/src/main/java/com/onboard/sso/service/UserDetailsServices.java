@@ -18,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.onboard.sso.dao.UserRolesDao;
+import com.onboard.sso.dao.OnBoardDao;
 import com.onboard.sso.entity.Role;
 import com.onboard.sso.entity.User;
 import com.onboard.sso.repos.UserDetailsRepository;
@@ -41,7 +41,7 @@ public class UserDetailsServices implements UserDetailsService{
 	private UserDetailsRepository  userDetailsRepo;
 	
 	@Autowired
-	private UserRolesDao<Role> userRoleDao;
+	private OnBoardDao<Role> userRoleDao;
 	
 	@Value("${admin.email}")
 	private String adminEmail;
@@ -55,7 +55,7 @@ public class UserDetailsServices implements UserDetailsService{
 		if(adminEmail.equals(userName)) {
 			return new org.springframework.security.core.userdetails.User(userName,adminPassword,prepareAdminAuthority());
 		}
-		Optional<com.onboard.sso.entity.User> user=Optional.of(userDetailsRepo.findUserBasedOnEmail(userName));
+		Optional<com.onboard.sso.entity.User> user=Optional.ofNullable(userDetailsRepo.findUserBasedOnEmail(userName));
 		if(user.isPresent()) {
 			com.onboard.sso.entity.User userD=user.get();
 			List<Role> roles= userRoleDao.findUserRole(userD.getId());
