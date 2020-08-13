@@ -52,13 +52,17 @@ public class UserDetailsServices implements UserDetailsService{
 	@Transactional(readOnly = true)
 	@Override
 	public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+		System.out.println("loading==");
 		if(adminEmail.equals(userName)) {
 			return new org.springframework.security.core.userdetails.User(userName,adminPassword,prepareAdminAuthority());
 		}
 		Optional<com.onboard.sso.entity.User> user=Optional.ofNullable(userDetailsRepo.findUserBasedOnEmail(userName));
+		System.out.println("loading==1");
 		if(user.isPresent()) {
+			System.out.println("loading==3");
 			com.onboard.sso.entity.User userD=user.get();
 			List<Role> roles= userRoleDao.findUserRole(userD.getId());
+			roles.forEach((role)->System.out.println(role.getName()));
 			return new org.springframework.security.core.userdetails.User(userName,userD.getPassword(),prepareAuthority(roles));
 		}
 		throw new UsernameNotFoundException("unable to find user with userName:"+userName);
@@ -67,7 +71,8 @@ public class UserDetailsServices implements UserDetailsService{
 	public List<GrantedAuthority> prepareAuthority(List<Role> roles){
 		List<GrantedAuthority> authorities=new ArrayList<GrantedAuthority>();
 		roles.forEach((role)->{
-			SimpleGrantedAuthority simpleGrantedAuthority=new SimpleGrantedAuthority(role.getName());
+			SimpleGrantedAuthority simpleGrantedAuthority=new SimpleGrantedAuthority("ROLE_"+role.getName());
+			System.out.println("User is having permission:"+role.getName());
 			authorities.add(simpleGrantedAuthority);
 		});
 		return authorities;
@@ -75,8 +80,8 @@ public class UserDetailsServices implements UserDetailsService{
 	
 	public List<GrantedAuthority> prepareAdminAuthority(){
 		List<GrantedAuthority> authorities=new ArrayList<GrantedAuthority>();
-		authorities.add(new SimpleGrantedAuthority("USER"));
-		authorities.add(new SimpleGrantedAuthority("ADMIN"));
+		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+		authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
 		return authorities;
 	}
 	

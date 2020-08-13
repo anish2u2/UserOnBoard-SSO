@@ -11,7 +11,15 @@ package com.onboard.sso.model;
 public class SessionStatusResponse {
 	
 	private boolean active;
-
+	
+	/**
+	 * 
+	 */
+	public SessionStatusResponse(boolean active) {
+		// TODO Auto-generated constructor stub
+		this.active=active;
+	}
+	
 	/**
 	 * @return the active
 	 */

@@ -15,10 +15,10 @@ import com.onboard.sso.entity.RegistrationSessionToken;
  */
 public interface RegistrationSessionTokenRepo extends CrudRepository<RegistrationSessionToken, Long>{
 
-	@Query("from RegistrationSessionToken where emailId=:emailId")
+	@Query("from RegistrationSessionToken where active=true and emailId=:emailId")
 	public RegistrationSessionToken findByEmail(String emailId);
 	
-	@Query("from RegistrationSessionToken where sessionId=:sessionId")
+	@Query("from RegistrationSessionToken where active=true and sessionId=:sessionId")
 	public RegistrationSessionToken findBySessionId(String sessionId);
 	
 	

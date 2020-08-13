@@ -68,8 +68,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 					return;
 				}
 				String userName = tokenUtil.getUsernameFromToken(request.getHeader(TOKEN_HEADER));
-
+				System.out.println("Check token:"+userName);
 				UserDetails userDetails = userdetailsService.loadUserByUsername(userName);
+				userDetails.getAuthorities().forEach(value->{System.out.println(value.getAuthority());});
 				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userName,
 						userDetails.getPassword(), userDetails.getAuthorities());
 				SecurityContext context = SecurityContextHolder.getContext();
@@ -89,7 +90,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 	 * @return
 	 */
 	public boolean validateToken(HttpServletRequest request) {
-		String token = request.getHeader(TOKEN_HEADER);
+		String token = request.getHeader(TOKEN_HEADER)==null?request.getParameter(TOKEN_HEADER):request.getHeader(TOKEN_HEADER);
 		if (!StringUtils.isEmpty(token)) {
 			try {
 				return tokenUtil.isTokenExpired(token) ? false : true;
@@ -120,7 +121,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 	}
 	
 	public String getRegistrationToken(HttpServletRequest request) {
-		return request.getHeader("tempToken")==null?request.getParameter("tempToken"):request.getHeader("tempToken");
+		return request.getHeader("x-registration-token")==null?request.getParameter("x-registration-token"):request.getHeader("x-registration-token");
 	}
 
 	public boolean isRegistrationRequest(HttpServletRequest request) {

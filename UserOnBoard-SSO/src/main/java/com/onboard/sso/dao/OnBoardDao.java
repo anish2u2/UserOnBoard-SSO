@@ -3,6 +3,7 @@
  */
 package com.onboard.sso.dao;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,17 +38,18 @@ public class OnBoardDao<T> extends HibernateDaoSupport {
 
 			@Override
 			public List<Role> doInHibernate(Session session) throws HibernateException {
-				Query query = session.createQuery(
-						"select role_id,name from role where role_id in (select distinct role_id from user_details where user_id=:userId)");
+				Query query = session.createNativeQuery(
+						"select role_id,role_name from role where role_id in (select distinct role_id from user_roles where user_id=:userId)");
 				query.setParameter("userId", userId);
 				List<Object[]> results = query.getResultList();
 				List<Role> roles = new ArrayList<Role>();
 				results.forEach((result) -> {
 					Role role = new Role();
-					role.setId(Long.valueOf((String) result[0]));
+					role.setId(((BigInteger) result[0]).longValue());
 					role.setName((String) result[1]);
+					roles.add(role);
 				});
-				return null;
+				return roles;
 			}
 		});
 	}
