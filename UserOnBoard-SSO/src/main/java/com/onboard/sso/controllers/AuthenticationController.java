@@ -6,12 +6,14 @@ package com.onboard.sso.controllers;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.onboard.sso.entity.RegistrationSessionToken;
+import com.onboard.sso.entity.Role;
 import com.onboard.sso.entity.User;
 import com.onboard.sso.model.AuthFailureResponse;
 import com.onboard.sso.model.AuthResponse;
@@ -73,7 +76,7 @@ public class AuthenticationController {
 	public AuthResponse authenticate(@RequestBody LoginModel payload) {
 		if (adminEmail.equals(payload.getUserName()) && adminPassword.equals(payload.getPassword())) {
 			String token = tokenUtil.generateToken(adminEmail);
-			return new AuthSuccessResponse(200, token);
+			return new AuthSuccessResponse(200, token,1);
 		}
 		UserDetails details =null;
 		try {
@@ -87,7 +90,8 @@ public class AuthenticationController {
 			System.out.println("Matches");
 			String token = tokenUtil.generateToken(details);
 			sesionUtils.putTokenInMap(payload.getUserName(), token);
-			return new AuthSuccessResponse(200, token);
+			boolean flag=details.getAuthorities().stream().filter((auth)->{return Role.ADMIN_ROLE.equals(auth.getAuthority());}).findAny().isPresent();
+			return new AuthSuccessResponse(200, token,flag?1:0);
 		}
 		return new AuthFailureResponse(400, "Email/Password do not match.");
 	}
@@ -103,7 +107,7 @@ public class AuthenticationController {
 		
 		if (adminEmail.equals(userName)) {
 			sesionUtils.putTokenInMap(userName, token);
-			return new AuthSuccessResponse(200, request.getHeader("x-user-onboard-token"));
+			return new AuthSuccessResponse(200, request.getHeader("x-user-onboard-token"),1);
 		} else {
 			User user =null;
 			try {
@@ -113,7 +117,8 @@ public class AuthenticationController {
 			if(user==null)
 				return new AuthFailureResponse(400, "user not found.");
 			if ( user.getActive() && sesionUtils.getTokenAssociatedWithUser(user.getUserDetails().getEmailId())!=null) {
-				return new AuthSuccessResponse(200, request.getHeader("x-user-onboard-token"));
+				boolean flag=user.getRoles().stream().filter((auth)->{return Role.ADMIN_ROLE.equals(auth.getName());}).findAny().isPresent();
+				return new AuthSuccessResponse(200, request.getHeader("x-user-onboard-token"),flag?1:0);
 			} else {
 				return new AuthFailureResponse(400, "User does not active.");
 			}
@@ -130,13 +135,16 @@ public class AuthenticationController {
 		if (tokenStr == null) {
 			return new AuthFailureResponse(401, "User not found.");
 		}
+		System.out.println("Token decoded:"+new String(Base64.getDecoder().decode(tokenStr.getBytes()),"UTF-8"));
 		RegistrationSessionToken token = repo.findByEmail(new String(Base64.getDecoder().decode(tokenStr.getBytes()),"UTF-8"));
+		System.out.println("Token object:"+token);
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DAY_OF_MONTH, -10);
+		System.out.println(cal.getTime().after(token.getLastUpdatedDate()));
 		if (token != null)
 			if (!cal.getTime().after(token.getLastUpdatedDate())) {
 				sesionUtils.putTokenInMap(token.getEmailId(), tokenStr);
-				return new AuthSuccessResponse(200, tokenStr);
+				return new AuthSuccessResponse(200, tokenStr,0);
 			} else {
 				service.deleteToken(token);
 			}

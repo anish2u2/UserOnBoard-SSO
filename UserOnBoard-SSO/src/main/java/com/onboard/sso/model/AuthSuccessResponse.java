@@ -11,6 +11,8 @@ package com.onboard.sso.model;
 public class AuthSuccessResponse implements AuthResponse{
 	
 	private int statusCode;
+	
+	private int role;
 
 	/**
 	 * @return the statusCode
@@ -32,9 +34,9 @@ public class AuthSuccessResponse implements AuthResponse{
 	/**
 	 * 
 	 */
-	public AuthSuccessResponse(int code,String token) {
+	public AuthSuccessResponse(int code,String token,int role) {
 		super();
-		this.setStatusCode(code);this.setToken(token);
+		this.setStatusCode(code);this.setToken(token);this.setRole(role);
 	}
 
 	/**
@@ -49,6 +51,20 @@ public class AuthSuccessResponse implements AuthResponse{
 	 */
 	public void setToken(String token) {
 		this.token = token;
+	}
+
+	/**
+	 * @return the role
+	 */
+	public int getRole() {
+		return role;
+	}
+
+	/**
+	 * @param role the role to set
+	 */
+	public void setRole(int role) {
+		this.role = role;
 	}
 	
 	
